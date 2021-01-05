@@ -1,0 +1,4 @@
+.env
+.vscode
+__pycache__/research.cpython-38.pyc
+conversationbot
