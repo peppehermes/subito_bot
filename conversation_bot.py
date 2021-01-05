@@ -18,7 +18,7 @@ bot.
 
 import logging
 from research import Research
-import collections
+from decouple import config
 
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -31,6 +31,7 @@ from telegram.ext import (
     CallbackContext,
 )
 
+TOKEN = config("TOKEN")
 
 # Enable logging
 logging.basicConfig(
