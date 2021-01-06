@@ -31,6 +31,10 @@ from telegram.ext import (
     CallbackContext,
 )
 
+import os
+
+PORT = int(os.environ.get("PORT", 5000))
+
 TOKEN = config("TOKEN")
 
 # Enable logging
@@ -55,10 +59,9 @@ reply_keyboard = [
     ["Modify", "Remove"],
     ["Done"],
 ]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
-modify_keyboard = [["URL", "Name"]]
-modify_markup = ReplyKeyboardMarkup(modify_keyboard, one_time_keyboard=True)
+markup = ReplyKeyboardMarkup(
+    reply_keyboard, one_time_keyboard=True, resize_keyboard=True
+)
 
 
 def facts_to_str(user_data):
@@ -72,7 +75,7 @@ def facts_to_str(user_data):
 
 def start(update: Update, context: CallbackContext) -> None:
     reply_text = "Hi! My name is SubitoBot."
-    if context.user_data["researches"]:
+    if context.user_data:
         researches = context.user_data["researches"]
         # Start the tracking routine
         reply_text += "\n\nYou already monitoring these researches:\n"
@@ -209,7 +212,9 @@ def modify_research(update: Update, context: CallbackContext) -> None:
     for res in research_list:
         name_list.append([res.name])
 
-    markup = ReplyKeyboardMarkup(name_list, one_time_keyboard=True)
+    markup = ReplyKeyboardMarkup(
+        name_list, one_time_keyboard=True, resize_keyboard=True
+    )
     update.message.reply_text(reply_text, reply_markup=markup)
     return MODIFYING
 
@@ -268,7 +273,9 @@ def remove_research(update: Update, context: CallbackContext) -> None:
     for res in research_list:
         name_list.append([res.name])
 
-    markup = ReplyKeyboardMarkup(name_list, one_time_keyboard=True)
+    markup = ReplyKeyboardMarkup(
+        name_list, one_time_keyboard=True, resize_keyboard=True
+    )
     update.message.reply_text(reply_text, reply_markup=markup)
     return REMOVING
 
@@ -296,6 +303,11 @@ def done(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text("Bye!")
     return ConversationHandler.END
+
+
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
 def main():
@@ -366,8 +378,13 @@ def main():
 
     dp.add_handler(conv_handler)
 
+    # log all errors
+    dp.add_error_handler(error)
+
     # Start the Bot
-    updater.start_polling()
+    # updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
+    updater.bot.setWebhook("https://blooming-citadel-68071.herokuapp.com/" + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
