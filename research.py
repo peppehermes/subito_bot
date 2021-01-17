@@ -2,10 +2,31 @@ from bs4 import BeautifulSoup
 import requests
 
 
+class Item:
+    def __init__(self, title, price):
+        self.title = title
+        self.price = price
+
+    def __key(self):
+        return self.title
+
+    def __str__(self):
+        return f"{self.title}\nPrice: {self.price}\n"
+
+    def __eq__(self, other):
+        if isinstance(other, Item):
+            return self.__key() == other.__key()
+
+        return False
+
+    def __hash__(self):
+        return hash(self.__key())
+
+
 class Research:
     def __init__(self, url):
         self.url = url
-        self.items_price_list = None
+        self.items_list = []
         self.name = None
 
     def change_name(self, name):
@@ -22,8 +43,11 @@ class Research:
     def get_items_on_sale(self):
         page_html = self.get_page_html(self.url)
         soup = BeautifulSoup(page_html, "html.parser")
+
         items_on_sale = []
         items_price = []
+        items_list = []
+
         for el in soup.findAll(
             "h2",
             {
@@ -40,9 +64,19 @@ class Research:
         ):
             items_price.append(el.getText())
 
-        items_price_list = list(zip(items_on_sale, items_price))
+        # Check if list lengths are the same
+        if len(items_on_sale) != len(items_price):
+            k = len(items_on_sale)
+            del items_price[k:]
 
-        self.items_price_list = items_price_list
+        # Append items if not present in list
+        for idx in range(len(items_on_sale)):
+            item = Item(items_on_sale[idx], items_price[idx])
+            items_list.append(item)
+
+        # items_price_list = list(zip(items_on_sale, items_price))
+
+        self.items_list = items_list
 
     def print_research(self):
         text = f"\nName: {self.name}\n"

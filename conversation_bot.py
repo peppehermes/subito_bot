@@ -37,6 +37,8 @@ PORT = int(os.environ.get("PORT", 5000))
 
 TOKEN = config("TOKEN")
 
+INTERVAL = 60
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -86,7 +88,7 @@ def start(update: Update, context: CallbackContext) -> None:
                 "research": research,
             }
             context.job_queue.run_repeating(
-                send_notification, 60, context=routine_context, name=research.name
+                send_notification, INTERVAL, context=routine_context, name=research.name
             )
 
     else:
@@ -163,18 +165,31 @@ def finalize_tracking(update: Update, context: CallbackContext) -> None:
 
 def send_notification(context: CallbackContext):
     research = context.job.context["research"]
-    old_items_price_list = research.items_price_list
+    old_items_list = research.items_list
     research.get_items_on_sale()
+    new_items_list = research.items_list
 
-    check = set(research.items_price_list).issubset(set(old_items_price_list))
+    # for old_item in old_items_list:
+    #     print(old_item)
 
-    if check is False:
-        # If check is true the old list contains all the elements of the new one
-        # So this means they are equal or some ads have been removed
+    # for new_item in new_items_list:
+    #     print(new_item)
 
-        # Otherwise, the new list is not equal to or a subset of the old ond
-        # So this means someone inserted a new ad
-        reply_message = f"There are new results for {research.print_research()}.\n"
+    new_items = list(set(new_items_list) - set(old_items_list))
+    print(new_items)
+
+    # check = set(research.items_price_list).issubset(set(old_items_price_list))
+
+    # if check is False:
+    # If check is true the old list contains all the elements of the new one
+    # So this means they are equal or some ads have been removed
+
+    # Otherwise, the new list is not equal to or a subset of the old ond
+    # So this means someone inserted a new ad
+    if new_items:
+        reply_message = f"There are new results for {research.print_research()}\n"
+        for item in new_items:
+            reply_message += str(item)
 
         context.bot.send_message(
             chat_id=context.job.context["chat_id"], text=reply_message
