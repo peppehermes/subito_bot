@@ -29,6 +29,9 @@ class Research:
         self.items_list = []
         self.name = None
 
+    def __str__(self):
+        return f"\n{self.name}\n{self.url}\n"
+
     def change_name(self, name):
         self.name = name
 
@@ -77,11 +80,3 @@ class Research:
         # items_price_list = list(zip(items_on_sale, items_price))
 
         self.items_list = items_list
-
-    def print_research(self):
-        text = f"\nName: {self.name}\n"
-        text += f"URL: {self.url}\n"
-        # for item in self.items_price_list:
-        #     text += f"Item: {item[0]}\nPrice: {item[1]}\n\n"
-
-        return text

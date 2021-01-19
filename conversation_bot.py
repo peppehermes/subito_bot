@@ -82,7 +82,7 @@ def start(update: Update, context: CallbackContext) -> None:
         # Start the tracking routine
         reply_text += "\n\nYou already monitoring these researches:\n"
         for research in researches:
-            reply_text += research.print_research()
+            reply_text += str(research)
             routine_context = {
                 "chat_id": update.message.chat_id,
                 "research": research,
@@ -147,7 +147,7 @@ def finalize_tracking(update: Update, context: CallbackContext) -> None:
 
     # If it's not present, change name to the last object of the list
     context.user_data["researches"][-1].change_name(name)
-    new_research = context.user_data["researches"][-1]
+    # new_research = context.user_data["researches"][-1]
 
     # Start the tracking routine for this research
     routine_context = {
@@ -176,7 +176,7 @@ def send_notification(context: CallbackContext):
     #     print(new_item)
 
     new_items = list(set(new_items_list) - set(old_items_list))
-    print(new_items)
+    # print(new_items)
 
     # check = set(research.items_price_list).issubset(set(old_items_price_list))
 
@@ -187,7 +187,7 @@ def send_notification(context: CallbackContext):
     # Otherwise, the new list is not equal to or a subset of the old ond
     # So this means someone inserted a new ad
     if new_items:
-        reply_message = f"There are new results for {research.print_research()}\n"
+        reply_message = f"There are new results for {str(research)}\n"
         for item in new_items:
             reply_message += str(item)
 
@@ -207,7 +207,7 @@ def list_research(update: Update, context: CallbackContext) -> None:
     researches = context.user_data["researches"]
     reply_text = f"These are the researches you are following.\n"
     for research in researches:
-        reply_text += research.print_research()
+        reply_text += str(research)
 
     update.message.reply_text(reply_text, reply_markup=markup)
     return CHOOSING
@@ -315,6 +315,11 @@ def finalize_removing(update: Update, context: CallbackContext) -> None:
 def done(update: Update, context: CallbackContext) -> None:
     if "choice" in context.user_data:
         del context.user_data["choice"]
+
+    for res in context.user_data["researches"]:
+        # Remove routines from job queue
+        for job in context.job_queue.get_jobs_by_name(res.name):
+            job.schedule_removal()
 
     update.message.reply_text("Bye!")
     return ConversationHandler.END
