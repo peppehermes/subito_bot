@@ -80,7 +80,7 @@ def start(update: Update, context: CallbackContext) -> None:
     if context.user_data:
         researches = context.user_data["researches"]
         # Start the tracking routine
-        reply_text += "\n\nYou already monitoring these researches:\n"
+        reply_text += "\n\nYou are already monitoring these researches:\n"
         for research in researches:
             reply_text += str(research)
             routine_context = {
@@ -189,7 +189,7 @@ def send_notification(context: CallbackContext):
     if new_items:
         reply_message = f"There are new results for {str(research)}\n"
         for item in new_items:
-            reply_message += str(item)
+            reply_message += str(item) + "\n"
 
         context.bot.send_message(
             chat_id=context.job.context["chat_id"], text=reply_message

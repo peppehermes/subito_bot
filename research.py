@@ -3,15 +3,20 @@ import requests
 
 
 class Item:
-    def __init__(self, title, price):
+    def __init__(self, title, price, town, city, date):
         self.title = title
         self.price = price
+        self.town = town
+        self.city = city
+        self.date = date
 
     def __key(self):
-        return self.title
+        return self.title + self.price + self.town + self.city
 
     def __str__(self):
-        return f"{self.title}\nPrice: {self.price}\n"
+        return (
+            f"{self.title}\nPrice: {self.price}\n{self.town}{self.city} - {self.date}\n"
+        )
 
     def __eq__(self, other):
         if isinstance(other, Item):
@@ -40,43 +45,48 @@ class Research:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36"
         }
         page = requests.get(url, headers=headers)
-        print(page.status_code)
         return page.content
 
     def get_items_on_sale(self):
-        page_html = self.get_page_html(self.url)
-        soup = BeautifulSoup(page_html, "html.parser")
-
-        items_on_sale = []
-        items_price = []
         items_list = []
+        i = 1
 
-        for el in soup.findAll(
-            "h2",
-            {
-                "class": "classes_sbt-text-atom__2GBat classes_token-h6__1ZJNe size-normal classes_weight-semibold__1RkLc jsx-3045029806 item-title jsx-3924372161"
-            },
-        ):
-            items_on_sale.append(el.getText())
+        while True:
+            url = self.url + f"&o={i}"
+            i += 1
 
-        for el in soup.findAll(
-            "h6",
-            {
-                "class": "classes_sbt-text-atom__2GBat classes_token-h6__1ZJNe size-normal classes_weight-semibold__1RkLc classes_price__HmHqw"
-            },
-        ):
-            items_price.append(el.getText())
+            page_html = self.get_page_html(url)
+            soup = BeautifulSoup(page_html, "html.parser")
 
-        # Check if list lengths are the same
-        if len(items_on_sale) != len(items_price):
-            k = len(items_on_sale)
-            del items_price[k:]
+            item_key_data = soup.findAll(
+                "div", {"class": "jsx-3924372161 item-key-data"}
+            )
 
-        # Append items if not present in list
-        for idx in range(len(items_on_sale)):
-            item = Item(items_on_sale[idx], items_price[idx])
-            items_list.append(item)
+            if len(item_key_data) == 0:
+                break
 
-        # items_price_list = list(zip(items_on_sale, items_price))
+            for item in item_key_data:
+                title = item.find(
+                    "h2",
+                    {
+                        "class": "classes_sbt-text-atom__2GBat classes_token-h6__1ZJNe size-normal classes_weight-semibold__1RkLc jsx-3045029806 item-title jsx-3924372161"
+                    },
+                )
+                price = item.find("h6", {"class": "classes_price__HmHqw"})
+                town = item.find("span", {"class": "classes_town__W-0Iq"})
+                city = item.find("span", {"class": "city"})
+                date = item.find("span", {"class": "classes_date__2lOoE"})
+
+                if date is not None:
+                    new_item = Item(
+                        title.getText(),
+                        price.getText(),
+                        town.getText(),
+                        city.getText(),
+                        date.getText(),
+                    )
+                    items_list.append(new_item)
 
         self.items_list = items_list
+
+        print(f"{self.name} {str(len(self.items_list))} results")
