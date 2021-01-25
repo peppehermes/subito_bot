@@ -3,7 +3,8 @@ import requests
 
 
 class Item:
-    def __init__(self, title, price, town, city, date):
+    def __init__(self, item_id, title, price, town, city, date):
+        self.item_id = item_id
         self.title = title
         self.price = price
         self.town = town
@@ -11,7 +12,7 @@ class Item:
         self.date = date
 
     def __key(self):
-        return self.title + self.price + self.town + self.city
+        return self.item_id
 
     def __str__(self):
         return (
@@ -58,14 +59,29 @@ class Research:
             page_html = self.get_page_html(url)
             soup = BeautifulSoup(page_html, "html.parser")
 
-            item_key_data = soup.findAll(
-                "div", {"class": "jsx-3924372161 item-key-data"}
-            )
+            # item_key_data = soup.findAll(
+            #     "div", {"class": "jsx-3924372161 item-key-data"}
+            # )
 
-            if len(item_key_data) == 0:
+            links = soup.findAll("a", {"class": "jsx-3924372161 link"})
+
+            # if len(item_key_data) == 0:
+            if len(links) == 0:
                 break
 
-            for item in item_key_data:
+            # for item in item_key_data:
+            for item in links:
+                # Get the ad ID from the href
+                href = item["href"]
+                item_page_html = self.get_page_html(href)
+                item_soup = BeautifulSoup(item_page_html, "html.parser")
+
+                item_id = item_soup.find(
+                    "p",
+                    {
+                        "class": "classes_sbt-text-atom__2GBat classes_token-caption__1Ofu6 size-normal classes_weight-book__3zPi1"
+                    },
+                )
                 title = item.find(
                     "h2",
                     {
@@ -79,6 +95,7 @@ class Research:
 
                 if date is not None:
                     new_item = Item(
+                        item_id.getText(),
                         title.getText(),
                         price.getText(),
                         town.getText(),
