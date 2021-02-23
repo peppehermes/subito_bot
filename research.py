@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import re
 
 
 class Item:
@@ -49,6 +50,12 @@ class Research:
         return page.content
 
     def get_items_on_sale(self):
+        title_regex = re.compile(".*item-title.*")
+        ad_id_regex = re.compile(".*ad-id.*")
+        price_regex = re.compile(".*classes_price.*")
+        town_regex = re.compile(".*classes_town.*")
+        date_regex = re.compile(".*classes_date.*")
+
         items_list = []
         i = 1
 
@@ -73,25 +80,25 @@ class Research:
             for item in links:
                 # Get the ad ID from the href
                 href = item["href"]
+
                 item_page_html = self.get_page_html(href)
                 item_soup = BeautifulSoup(item_page_html, "html.parser")
 
-                item_id = item_soup.find(
-                    "p",
-                    {
-                        "class": "classes_sbt-text-atom__2GBat classes_token-caption__1Ofu6 size-normal classes_weight-book__3zPi1"
-                    },
+                item_id_div = item_soup.find(
+                    "div",
+                    {"class": ad_id_regex},
                 )
+                item_id = item_id_div.find("p")
+
                 title = item.find(
                     "h2",
-                    {
-                        "class": "classes_sbt-text-atom__2GBat classes_token-h6__1ZJNe size-normal classes_weight-semibold__1RkLc jsx-3045029806 item-title jsx-3924372161"
-                    },
+                    {"class": title_regex},
                 )
-                price = item.find("h6", {"class": "classes_price__HmHqw"})
-                town = item.find("span", {"class": "classes_town__W-0Iq"})
+
+                price = item.find("h6", {"class": price_regex})
+                town = item.find("span", {"class": town_regex})
                 city = item.find("span", {"class": "city"})
-                date = item.find("span", {"class": "classes_date__2lOoE"})
+                date = item.find("span", {"class": date_regex})
 
                 if date is not None:
                     new_item = Item(
@@ -102,6 +109,8 @@ class Research:
                         city.getText(),
                         date.getText(),
                     )
+
+                    # print(new_item)
                     items_list.append(new_item)
 
         self.items_list = items_list

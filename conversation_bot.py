@@ -37,7 +37,7 @@ PORT = int(os.environ.get("PORT", 5000))
 
 TOKEN = config("TOKEN")
 
-INTERVAL = 60
+INTERVAL = 300
 
 # Enable logging
 logging.basicConfig(
@@ -127,12 +127,12 @@ def type_name(update: Update, context: CallbackContext) -> None:
 
     # If it's not present, create new Research object and add it to the list
     new_research = Research(url)
-    new_research.get_items_on_sale()
-    context.user_data["researches"].append(new_research)
 
     # Now ask the user to write the name
     reply_text = f"Now write me the name of this research.\n"
     update.message.reply_text(reply_text)
+    new_research.get_items_on_sale()
+    context.user_data["researches"].append(new_research)
     return TYPING_NAME
 
 
@@ -320,6 +320,8 @@ def done(update: Update, context: CallbackContext) -> None:
         # Remove routines from job queue
         for job in context.job_queue.get_jobs_by_name(res.name):
             job.schedule_removal()
+
+    # del context.user_data["researches"]
 
     update.message.reply_text("Bye!")
     return ConversationHandler.END
