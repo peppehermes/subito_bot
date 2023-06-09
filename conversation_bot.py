@@ -64,7 +64,6 @@ reply_keyboard = [
 markup = ReplyKeyboardMarkup(
     reply_keyboard, one_time_keyboard=True, resize_keyboard=True
 )
-global markup
 
 
 def facts_to_str(user_data):
