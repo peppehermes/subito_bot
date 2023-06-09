@@ -18,14 +18,13 @@ bot.
 
 import logging
 from research import Research
-from decouple import config
 
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Updater,
     CommandHandler,
     MessageHandler,
-    filters,
+    Filters,
     ConversationHandler,
     PicklePersistence,
     CallbackContext,
@@ -34,8 +33,7 @@ from telegram.ext import (
 import os
 
 PORT = int(os.environ.get("PORT", 5000))
-
-TOKEN = config("TOKEN")
+TOKEN = str(os.environ.get("TOKEN"))
 
 INTERVAL = 300
 
@@ -344,54 +342,54 @@ def main():
         states={
             CHOOSING: [
                 MessageHandler(
-                    filters.regex("^(Track)$"),
+                    Filters.regex("^(Track)$"),
                     type_url,
                 ),
                 MessageHandler(
-                    filters.regex("^(List)$"),
+                    Filters.regex("^(List)$"),
                     list_research,
                 ),
                 MessageHandler(
-                    filters.regex("^(Modify)$"),
+                    Filters.regex("^(Modify)$"),
                     modify_research,
                 ),
                 MessageHandler(
-                    filters.regex("^(Remove)$"),
+                    Filters.regex("^(Remove)$"),
                     remove_research,
                 ),
             ],
             TYPING_URL: [
                 MessageHandler(
-                    filters.text & ~(filters.command | filters.regex("^Done$")),
+                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
                     type_name,
                 )
             ],
             TYPING_NAME: [
                 MessageHandler(
-                    filters.text & ~(filters.command | filters.regex("^Done$")),
+                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
                     finalize_tracking,
                 )
             ],
             MODIFYING: [
                 MessageHandler(
-                    filters.text & ~(filters.command | filters.regex("^Done$")),
+                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
                     modify_name,
                 )
             ],
             MODIFYING_NAME: [
                 MessageHandler(
-                    filters.text & ~(filters.command | filters.regex("^Done$")),
+                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
                     finalize_modifying,
                 )
             ],
             REMOVING: [
                 MessageHandler(
-                    filters.text & ~(filters.command | filters.regex("^Done$")),
+                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
                     finalize_removing,
                 )
             ],
         },
-        fallbacks=[MessageHandler(filters.regex("^Done$"), done)],
+        fallbacks=[MessageHandler(Filters.regex("^Done$"), done)],
         name="my_conversation",
         persistent=True,
     )
