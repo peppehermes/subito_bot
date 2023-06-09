@@ -25,7 +25,7 @@ from telegram.ext import (
     Updater,
     CommandHandler,
     MessageHandler,
-    Filters,
+    filters,
     ConversationHandler,
     PicklePersistence,
     CallbackContext,
@@ -64,6 +64,7 @@ reply_keyboard = [
 markup = ReplyKeyboardMarkup(
     reply_keyboard, one_time_keyboard=True, resize_keyboard=True
 )
+global markup
 
 
 def facts_to_str(user_data):
@@ -227,10 +228,9 @@ def modify_research(update: Update, context: CallbackContext) -> None:
     for res in research_list:
         name_list.append([res.name])
 
-    markup = ReplyKeyboardMarkup(
+    update.message.reply_text(reply_text, reply_markup=ReplyKeyboardMarkup(
         name_list, one_time_keyboard=True, resize_keyboard=True
-    )
-    update.message.reply_text(reply_text, reply_markup=markup)
+    ))
     return MODIFYING
 
 
@@ -288,10 +288,9 @@ def remove_research(update: Update, context: CallbackContext) -> None:
     for res in research_list:
         name_list.append([res.name])
 
-    markup = ReplyKeyboardMarkup(
+    update.message.reply_text(reply_text, reply_markup=ReplyKeyboardMarkup(
         name_list, one_time_keyboard=True, resize_keyboard=True
-    )
-    update.message.reply_text(reply_text, reply_markup=markup)
+    ))
     return REMOVING
 
 
@@ -346,54 +345,54 @@ def main():
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.regex("^(Track)$"),
+                    filters.regex("^(Track)$"),
                     type_url,
                 ),
                 MessageHandler(
-                    Filters.regex("^(List)$"),
+                    filters.regex("^(List)$"),
                     list_research,
                 ),
                 MessageHandler(
-                    Filters.regex("^(Modify)$"),
+                    filters.regex("^(Modify)$"),
                     modify_research,
                 ),
                 MessageHandler(
-                    Filters.regex("^(Remove)$"),
+                    filters.regex("^(Remove)$"),
                     remove_research,
                 ),
             ],
             TYPING_URL: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
+                    filters.text & ~(filters.command | filters.regex("^Done$")),
                     type_name,
                 )
             ],
             TYPING_NAME: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
+                    filters.text & ~(filters.command | filters.regex("^Done$")),
                     finalize_tracking,
                 )
             ],
             MODIFYING: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
+                    filters.text & ~(filters.command | filters.regex("^Done$")),
                     modify_name,
                 )
             ],
             MODIFYING_NAME: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
+                    filters.text & ~(filters.command | filters.regex("^Done$")),
                     finalize_modifying,
                 )
             ],
             REMOVING: [
                 MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex("^Done$")),
+                    filters.text & ~(filters.command | filters.regex("^Done$")),
                     finalize_removing,
                 )
             ],
         },
-        fallbacks=[MessageHandler(Filters.regex("^Done$"), done)],
+        fallbacks=[MessageHandler(filters.regex("^Done$"), done)],
         name="my_conversation",
         persistent=True,
     )
